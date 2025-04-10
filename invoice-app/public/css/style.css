@@ -1,0 +1,49 @@
+/* Custom styles for the invoice app */
+
+/* Print Specific Styles */
+@media print {
+    body {
+        margin: 0;
+        background-color: #fff;
+        font-size: 10pt;
+    }
+    
+    .navbar,
+    #product-management,
+    #invoice-creation-form,
+    #print-button,
+    #clear-invoice,
+    #save-invoice,
+    .action-buttons,
+    #tax-rate-input {
+        display: none !important;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: none;
+    }
+    
+    .card-header {
+        display: none;
+    }
+    
+    .card-body {
+        padding: 0;
+    }
+    
+    #invoice-display {
+        width: 100%;
+    }
+    
+    #invoice-items-table th, 
+    #invoice-items-table td {
+        border: 1px solid #ccc;
+    }
+    
+    #invoice-totals {
+        page-break-inside: avoid;
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+    }
+}

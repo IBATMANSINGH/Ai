@@ -1,0 +1,19 @@
+<%- include('partials/header') %>
+
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-danger">
+            <h2><%= message %></h2>
+            <% if (error && error.status) { %>
+                <p>Status: <%= error.status %></p>
+            <% } %>
+            <% if (error && error.stack && process.env.NODE_ENV !== 'production') { %>
+                <pre><%= error.stack %></pre>
+            <% } %>
+        </div>
+        <a href="javascript:history.back()" class="btn btn-primary">Go Back</a>
+        <a href="/" class="btn btn-secondary">Home</a>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

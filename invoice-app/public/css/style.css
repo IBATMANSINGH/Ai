@@ -7,7 +7,7 @@
         background-color: #fff;
         font-size: 10pt;
     }
-    
+
     .navbar,
     #product-management,
     #invoice-creation-form,
@@ -18,29 +18,35 @@
     #tax-rate-input {
         display: none !important;
     }
-    
+
+    /* Show company info when printing */
+    #company-info {
+        display: block !important;
+        margin-bottom: 20px;
+    }
+
     .card {
         border: none;
         box-shadow: none;
     }
-    
+
     .card-header {
         display: none;
     }
-    
+
     .card-body {
         padding: 0;
     }
-    
+
     #invoice-display {
         width: 100%;
     }
-    
-    #invoice-items-table th, 
+
+    #invoice-items-table th,
     #invoice-items-table td {
         border: 1px solid #ccc;
     }
-    
+
     #invoice-totals {
         page-break-inside: avoid;
         border-top: 1px solid #ccc;

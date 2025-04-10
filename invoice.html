@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Billing & Invoicing</title>
+    <style>
+        /* Basic Styling */
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex: 1; /* Allow sections to grow */
+            min-width: 350px; /* Minimum width before wrapping */
+        }
+        h2, h3 {
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="number"] {
+             /* Adjust width for number inputs if needed */
+            width: 80px;
+        }
+        button {
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 5px;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        button.delete, button.edit {
+             background-color: #d9534f;
+             margin-left: 5px;
+             padding: 5px 8px;
+             font-size: 0.9em;
+        }
+         button.edit {
+             background-color: #f0ad4e;
+         }
+        button.delete:hover {
+            background-color: #c9302c;
+        }
+        button.edit:hover {
+            background-color: #ec971f;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .text-right {
+            text-align: right;
+        }
+        #invoice-totals {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #ccc;
+        }
+        #invoice-totals p {
+             margin: 5px 0;
+             text-align: right;
+             font-size: 1.1em;
+        }
+         #invoice-totals p span {
+             display: inline-block;
+             min-width: 80px;
+             font-weight: bold;
+         }
+
+        /* Print Specific Styles */
+        @media print {
+            body {
+                margin: 0;
+                background-color: #fff; /* Ensure white background for printing */
+                font-size: 10pt; /* Adjust font size for print */
+            }
+            .container {
+                display: block; /* Stack sections vertically */
+                box-shadow: none;
+                border: none;
+            }
+            .section {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                margin-bottom: 20px;
+                min-width: auto;
+            }
+            /* Hide elements not needed for print */
+            #product-management,
+            #invoice-creation-form,
+            #print-button,
+            .action-buttons, /* Hide Edit/Delete buttons in tables */
+            #tax-rate-input {
+                display: none !important;
+            }
+            #invoice-display {
+                width: 100%;
+            }
+             #invoice-items-table th, #invoice-items-table td {
+                border: 1px solid #ccc; /* Add light borders for print */
+            }
+             #invoice-totals {
+                page-break-inside: avoid; /* Try to keep totals block together */
+            }
+            /* Ensure invoice details are visible */
+            #invoice-details, #invoice-items-table, #invoice-totals {
+                display: block !important;
+            }
+            h2, h3 {
+                border-bottom: 1px solid #ccc;
+                 font-size: 14pt;
+            }
+            /* Adjust table layout for print */
+            table {
+                width: 100%;
+                font-size: 9pt;
+            }
+            td, th {
+                padding: 4px 6px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Billing & Invoicing Application</h1>
+
+    <div class="container">
+
+        <!-- Section 1: Product Management -->
+        <div class="section" id="product-management">
+            <h2>Manage Products</h2>
+            <form id="product-form">
+                <input type="hidden" id="edit-product-id"> <!-- Hidden field for editing -->
+                <div>
+                    <label for="product-name">Product Name:</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                <div>
+                    <label for="product-price">Price ($):</label>
+                    <input type="number" id="product-price" step="0.01" min="0" required>
+                </div>
+                <button type="submit" id="add-update-product-btn">Add Product</button>
+                <button type="button" id="cancel-edit-btn" style="display: none; background-color: #777;">Cancel Edit</button>
+            </form>
+
+            <h3>Product List</h3>
+            <table id="product-list-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Price ($)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="product-list">
+                    <!-- Product rows will be added here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Section 2: Invoice Creation -->
+        <div class="section" id="invoice-creation">
+            <h2>Create Invoice</h2>
+             <div id="invoice-creation-form">
+                 <label for="customer-name">Customer Name:</label>
+                 <input type="text" id="customer-name" placeholder="Optional">
+
+                 <label for="product-select">Select Product:</label>
+                 <select id="product-select">
+                     <option value="">-- Select Product --</option>
+                     <!-- Product options will be added here -->
+                 </select>
+
+                 <label for="quantity">Quantity:</label>
+                 <input type="number" id="quantity" value="1" min="1">
+
+                 <button type="button" onclick="addInvoiceItem()">Add to Invoice</button>
+            </div>
+
+            <div id="invoice-display">
+                <h3>Current Invoice</h3>
+                <div id="invoice-details">
+                     <p><strong>Customer:</strong> <span id="display-customer-name">N/A</span></p>
+                     <p><strong>Date:</strong> <span id="display-invoice-date"></span></p>
+                     <p><strong>Invoice #:</strong> <span id="display-invoice-number"></span></p>
+                </div>
+
+                <table id="invoice-items-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price ($)</th>
+                            <th>Qty</th>
+                            <th>Total ($)</th>
+                            <th class="action-buttons">Actions</th> <!-- Hide in print -->
+                        </tr>
+                    </thead>
+                    <tbody id="invoice-items">
+                        <!-- Invoice items will be added here -->
+                    </tbody>
+                </table>
+
+                <div id="invoice-totals">
+                     <div id="tax-rate-input"> <!-- Hide in print -->
+                        <label for="tax-rate">Tax Rate (%):</label>
+                        <input type="number" id="tax-rate" value="10" step="0.1" min="0" oninput="updateTotals()">
+                     </div>
+                     <p>Subtotal: $ <span id="subtotal">0.00</span></p>
+                     <p>Tax (<span id="tax-rate-display">10</span>%): $ <span id="tax-amount">0.00</span></p>
+                     <p><strong>Grand Total: $ <span id="grand-total">0.00</span></strong></p>
+                </div>
+
+                 <button id="print-button" onclick="printInvoice()" style="margin-top: 20px; background-color: #337ab7;">Print Invoice</button>
+                 <button onclick="clearInvoice()" style="margin-top: 20px; background-color: #f0ad4e;">Clear Invoice</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Globals ---
+        let products = []; // Array to hold product objects { id, name, price }
+        let invoiceItems = []; // Array to hold invoice line items { productId, name, price, quantity, total }
+        let editingProductId = null; // Track which product ID is being edited
+
+        // --- DOM Elements ---
+        const productForm = document.getElementById('product-form');
+        const productNameInput = document.getElementById('product-name');
+        const productPriceInput = document.getElementById('product-price');
+        const productListTbody = document.getElementById('product-list');
+        const productSelect = document.getElementById('product-select');
+        const quantityInput = document.getElementById('quantity');
+        const invoiceItemsTbody = document.getElementById('invoice-items');
+        const subtotalSpan = document.getElementById('subtotal');
+        const taxRateInput = document.getElementById('tax-rate');
+        const taxRateDisplay = document.getElementById('tax-rate-display');
+        const taxAmountSpan = document.getElementById('tax-amount');
+        const grandTotalSpan = document.getElementById('grand-total');
+        const editProductIdInput = document.getElementById('edit-product-id');
+        const addUpdateProductBtn = document.getElementById('add-update-product-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const customerNameInput = document.getElementById('customer-name');
+        const displayCustomerName = document.getElementById('display-customer-name');
+        const displayInvoiceDate = document.getElementById('display-invoice-date');
+        const displayInvoiceNumber = document.getElementById('display-invoice-number');
+
+
+        // --- Product Management ---
+
+        function saveProducts() {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        function loadProducts() {
+            const storedProducts = localStorage.getItem('products');
+            if (storedProducts) {
+                products = JSON.parse(storedProducts);
+            }
+        }
+
+        function renderProductList() {
+            productListTbody.innerHTML = ''; // Clear existing list
+            populateProductDropdown(); // Update dropdown whenever product list changes
+
+            products.forEach(product => {
+                const row = productListTbody.insertRow();
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td class="text-right">${parseFloat(product.price).toFixed(2)}</td>
+                    <td>
+                        <button class="edit" onclick="startEditProduct('${product.id}')">Edit</button>
+                        <button class="delete" onclick="deleteProduct('${product.id}')">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+         function handleProductFormSubmit(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const name = productNameInput.value.trim();
+            const price = parseFloat(productPriceInput.value);
+            const idToEdit = editProductIdInput.value;
+
+            if (!name || isNaN(price) || price < 0) {
+                alert('Please enter a valid product name and price.');
+                return;
+            }
+
+            if (idToEdit) {
+                 // Update existing product
+                const productIndex = products.findIndex(p => p.id === idToEdit);
+                if (productIndex > -1) {
+                    products[productIndex].name = name;
+                    products[productIndex].price = price;
+                }
+                 cancelEdit(); // Reset form after update
+            } else {
+                // Add new product
+                const newProduct = {
+                    id: `prod_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`, // Simple unique ID
+                    name: name,
+                    price: price
+                };
+                products.push(newProduct);
+            }
+
+            saveProducts();
+            renderProductList();
+            productForm.reset(); // Clear form fields
+        }
+
+        function startEditProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            editingProductId = id;
+            editProductIdInput.value = id; // Store ID in hidden field
+            productNameInput.value = product.name;
+            productPriceInput.value = product.price;
+            addUpdateProductBtn.textContent = 'Update Product';
+            addUpdateProductBtn.style.backgroundColor = '#f0ad4e'; // Orange for update
+            cancelEditBtn.style.display = 'inline-block'; // Show cancel button
+             productNameInput.focus(); // Focus on name field
+        }
+
+         function cancelEdit() {
+            editingProductId = null;
+            editProductIdInput.value = '';
+            productForm.reset();
+            addUpdateProductBtn.textContent = 'Add Product';
+            addUpdateProductBtn.style.backgroundColor = '#5cb85c'; // Back to green
+            cancelEditBtn.style.display = 'none';
+        }
+
+
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                products = products.filter(product => product.id !== id);
+                saveProducts();
+                renderProductList();
+                // Optional: check if the deleted product is in the current invoice and handle it
+                // For simplicity, we'll leave items in the invoice even if product is deleted later
+                 if (editingProductId === id) { // If deleting the product being edited
+                     cancelEdit();
+                 }
+            }
+        }
+
+        function populateProductDropdown() {
+            // Save current selection if possible
+            const currentSelection = productSelect.value;
+            productSelect.innerHTML = '<option value="">-- Select Product --</option>'; // Clear existing options
+            products.sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} - $${parseFloat(product.price).toFixed(2)}`;
+                productSelect.appendChild(option);
+            });
+            // Try to restore selection
+            if (products.some(p => p.id === currentSelection)) {
+                 productSelect.value = currentSelection;
+            }
+        }
+
+
+        // --- Invoice Management ---
+
+        function addInvoiceItem() {
+            const productId = productSelect.value;
+            const quantity = parseInt(quantityInput.value);
+
+            if (!productId || isNaN(quantity) || quantity <= 0) {
+                alert('Please select a product and enter a valid quantity.');
+                return;
+            }
+
+            const product = products.find(p => p.id === productId);
+            if (!product) {
+                alert('Selected product not found.'); // Should not happen if dropdown is correct
+                return;
+            }
+
+            // Check if item already exists, if so, update quantity (optional)
+            const existingItemIndex = invoiceItems.findIndex(item => item.productId === productId);
+            if (existingItemIndex > -1) {
+                 invoiceItems[existingItemIndex].quantity += quantity;
+                 invoiceItems[existingItemIndex].total = invoiceItems[existingItemIndex].quantity * invoiceItems[existingItemIndex].price;
+            } else {
+                 const newItem = {
+                    productId: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: quantity,
+                    total: product.price * quantity
+                };
+                invoiceItems.push(newItem);
+            }
+
+
+            renderInvoiceItems();
+            // Reset selection after adding
+             productSelect.value = '';
+             quantityInput.value = 1;
+        }
+
+        function removeInvoiceItem(index) {
+            invoiceItems.splice(index, 1);
+            renderInvoiceItems();
+        }
+
+        function renderInvoiceItems() {
+            invoiceItemsTbody.innerHTML = ''; // Clear existing items
+
+            invoiceItems.forEach((item, index) => {
+                const row = invoiceItemsTbody.insertRow();
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td class="text-right">${parseFloat(item.price).toFixed(2)}</td>
+                    <td class="text-right">${item.quantity}</td>
+                    <td class="text-right">${parseFloat(item.total).toFixed(2)}</td>
+                    <td class="action-buttons">
+                        <button class="delete" onclick="removeInvoiceItem(${index})">Remove</button>
+                    </td>
+                `;
+            });
+
+            updateTotals();
+             updateInvoiceDetails(); // Update header info too
+        }
+
+        function updateTotals() {
+            const subtotal = invoiceItems.reduce((sum, item) => sum + item.total, 0);
+            const taxRate = parseFloat(taxRateInput.value) || 0; // Get tax rate from input, default to 0
+            const taxAmount = subtotal * (taxRate / 100);
+            const grandTotal = subtotal + taxAmount;
+
+            subtotalSpan.textContent = subtotal.toFixed(2);
+            taxRateDisplay.textContent = taxRate.toFixed(1); // Display entered tax rate
+            taxAmountSpan.textContent = taxAmount.toFixed(2);
+            grandTotalSpan.textContent = grandTotal.toFixed(2);
+        }
+
+         function updateInvoiceDetails() {
+            const customerName = customerNameInput.value.trim();
+            displayCustomerName.textContent = customerName ? customerName : 'N/A';
+
+            // Simple Date and Invoice Number
+            const now = new Date();
+            displayInvoiceDate.textContent = now.toLocaleDateString();
+             // Generate a simple invoice number (could be more sophisticated)
+            displayInvoiceNumber.textContent = `INV-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function clearInvoice() {
+            if(confirm('Are you sure you want to clear the current invoice?')) {
+                invoiceItems = [];
+                customerNameInput.value = '';
+                // taxRateInput.value = 10; // Reset tax rate if desired
+                renderInvoiceItems(); // This will also update totals and details
+            }
+        }
+
+        function printInvoice() {
+            // Ensure details are up-to-date before printing
+            updateInvoiceDetails();
+            // Optional: briefly hide buttons for cleaner look before print dialog
+            // document.getElementById('print-button').style.display = 'none';
+            window.print();
+            // Optional: show button again after print dialog closes (might need setTimeout)
+            // setTimeout(() => { document.getElementById('print-button').style.display = 'inline-block'; }, 1000);
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProducts();
+            renderProductList();
+            renderInvoiceItems(); // Render empty invoice initially
+             updateInvoiceDetails(); // Set initial date/invoice#
+
+            // Attach Event Listeners
+            productForm.addEventListener('submit', handleProductFormSubmit);
+            cancelEditBtn.addEventListener('click', cancelEdit);
+             customerNameInput.addEventListener('input', updateInvoiceDetails); // Update customer name live
+
+            // Initial tax rate display update
+             taxRateInput.dispatchEvent(new Event('input'));
+
+            console.log("Billing App Initialized.");
+        });
+
+    </script>
+
+</body>
+</html>

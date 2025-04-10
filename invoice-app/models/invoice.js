@@ -1,4 +1,5 @@
-const db = require('./db');
+const dbModule = require('./db');
+const db = dbModule.getDb();
 
 class Invoice {
     // Get all invoices
@@ -30,7 +31,7 @@ class Invoice {
                 if (err) {
                     return callback(err, null);
                 }
-                
+
                 // Combine invoice with its items
                 invoice.items = items;
                 return callback(null, invoice);
@@ -45,10 +46,10 @@ class Invoice {
             db.run('BEGIN TRANSACTION');
 
             // Insert the invoice
-            const invoiceSql = `INSERT INTO invoices 
-                (customer_name, invoice_date, invoice_number, tax_rate, subtotal, tax_amount, grand_total) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)`;
-            
+            const invoiceSql = `INSERT INTO invoices
+                (customer_name, invoice_date, invoice_number, tax_rate, subtotal, tax_amount, grand_total, currency_symbol)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
             db.run(invoiceSql, [
                 invoice.customer_name,
                 invoice.invoice_date,
@@ -56,7 +57,8 @@ class Invoice {
                 invoice.tax_rate,
                 invoice.subtotal,
                 invoice.tax_amount,
-                invoice.grand_total
+                invoice.grand_total,
+                invoice.currency_symbol
             ], function(err) {
                 if (err) {
                     db.run('ROLLBACK');
@@ -64,7 +66,7 @@ class Invoice {
                 }
 
                 const invoiceId = this.lastID;
-                
+
                 // If there are no items, commit and return
                 if (!invoice.items || invoice.items.length === 0) {
                     db.run('COMMIT');
@@ -72,12 +74,12 @@ class Invoice {
                 }
 
                 // Prepare statement for inserting items
-                const itemSql = `INSERT INTO invoice_items 
-                    (invoice_id, product_id, product_name, price, quantity, total) 
+                const itemSql = `INSERT INTO invoice_items
+                    (invoice_id, product_id, product_name, price, quantity, total)
                     VALUES (?, ?, ?, ?, ?, ?)`;
-                
+
                 const stmt = db.prepare(itemSql);
-                
+
                 // Insert each item
                 let itemsProcessed = 0;
                 let hasError = false;
@@ -92,7 +94,7 @@ class Invoice {
                         item.total
                     ], function(err) {
                         itemsProcessed++;
-                        
+
                         if (err && !hasError) {
                             hasError = true;
                             db.run('ROLLBACK');

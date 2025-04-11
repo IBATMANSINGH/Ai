@@ -370,27 +370,15 @@ function processProductUpdate(id, req, res) {
             if (getErr) {
                 console.error('Error fetching existing product:', getErr);
             } else if (existingProduct && existingProduct.image_path) {
-                // Try to delete the old image files from all directories
-                const filename = path.basename(existingProduct.image_path);
-
-                // Define paths for all image versions
-                const imagePaths = [
-                    path.join(__dirname, '..', existingProduct.image_path),
-                    path.join(__dirname, '../uploads/optimized', filename),
-                    path.join(__dirname, '../uploads/thumbnails', filename)
-                ];
-
-                // Delete each image version if it exists
-                imagePaths.forEach(imagePath => {
-                    if (fs.existsSync(imagePath)) {
-                        try {
-                            fs.unlinkSync(imagePath);
-                            console.log(`Deleted old image file: ${imagePath}`);
-                        } catch (unlinkErr) {
-                            console.error(`Error deleting old image file ${imagePath}:`, unlinkErr);
-                        }
+                // Try to delete the old image file
+                const oldImagePath = path.join(__dirname, '..', existingProduct.image_path);
+                if (fs.existsSync(oldImagePath)) {
+                    try {
+                        fs.unlinkSync(oldImagePath);
+                    } catch (unlinkErr) {
+                        console.error('Error deleting old image file:', unlinkErr);
                     }
-                });
+                }
             }
 
             // Continue with the update
@@ -460,33 +448,23 @@ exports.deleteProduct = (req, res) => {
                     });
                 }
 
-                // If the product had an image, delete all image versions
+                // If the product had an image, delete the image file
                 if (product.image_path) {
-                    const filename = path.basename(product.image_path);
-                    console.log(`Deleting image files for: ${filename}`);
+                    const imagePath = path.join(__dirname, '..', product.image_path);
+                    console.log(`Checking for image file at: ${imagePath}`);
 
-                    // Define paths for all image versions
-                    const imagePaths = [
-                        path.join(__dirname, '..', product.image_path),
-                        path.join(__dirname, '../uploads/optimized', filename),
-                        path.join(__dirname, '../uploads/thumbnails', filename)
-                    ];
-
-                    // Delete each image version if it exists
-                    imagePaths.forEach(imagePath => {
-                        if (fs.existsSync(imagePath)) {
-                            try {
-                                console.log(`Deleting image file: ${imagePath}`);
-                                fs.unlinkSync(imagePath);
-                                console.log(`Image file deleted successfully: ${imagePath}`);
-                            } catch (unlinkErr) {
-                                console.error(`Error deleting image file ${imagePath}:`, unlinkErr);
-                                // Continue with the response even if image deletion fails
-                            }
-                        } else {
-                            console.log(`Image file not found: ${imagePath}`);
+                    if (fs.existsSync(imagePath)) {
+                        try {
+                            console.log(`Deleting image file: ${imagePath}`);
+                            fs.unlinkSync(imagePath);
+                            console.log('Image file deleted successfully');
+                        } catch (unlinkErr) {
+                            console.error('Error deleting image file:', unlinkErr);
+                            // Continue with the response even if image deletion fails
                         }
-                    });
+                    } else {
+                        console.log('Image file not found on disk');
+                    }
                 }
 
                 console.log(`Product with ID ${id} deleted successfully`);

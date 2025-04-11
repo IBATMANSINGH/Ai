@@ -385,45 +385,18 @@ function updateProduct(id, formData) {
 
 // Delete a product
 function deleteProduct(id) {
-    // Find the product name for the confirmation message
-    const product = products.find(p => p.id == id);
-    const productName = product ? product.name : 'this product';
-
-    if (confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
-        // Show loading indicator
-        const deleteBtn = document.querySelector(`button[data-id="${id}"]`);
-        if (deleteBtn) {
-            const originalText = deleteBtn.innerHTML;
-            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
-            deleteBtn.disabled = true;
-        }
-
+    if (confirm('Are you sure you want to delete this product?')) {
         fetch(`/api/products/${id}`, {
             method: 'DELETE',
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Server returned an error');
-            }
-            return response.json();
-        })
-        .then(data => {
-            fetchProducts(); // Refresh the product list
-            if (editingProductId === id) {
-                cancelEdit();
-            }
-            showFeedback('product-form-feedback', 'Product deleted successfully', 'success');
-        })
-        .catch(error => {
-            console.error('Error deleting product:', error);
-            showFeedback('product-form-feedback', `Error deleting product: ${error.message}`, 'danger');
-
-            // Reset the button if it exists
-            if (deleteBtn) {
-                deleteBtn.innerHTML = originalText;
-                deleteBtn.disabled = false;
-            }
-        });
+            .then(response => response.json())
+            .then(data => {
+                fetchProducts(); // Refresh the product list
+                if (editingProductId === id) {
+                    cancelEdit();
+                }
+            })
+            .catch(error => console.error('Error deleting product:', error));
     }
 }
 
@@ -1068,14 +1041,10 @@ function printInvoice() {
         const printWindow = window.open('', '_blank');
         console.log('Print window opened');
 
-        // Get company info from settings
+        // Get company info
         const companyName = appSettings && appSettings.company_name ? appSettings.company_name : 'Invoice App';
         const companyAddress = appSettings && appSettings.company_address ? appSettings.company_address : '';
         const companyPhone = appSettings && appSettings.company_phone ? appSettings.company_phone : '';
-        const companyEmail = appSettings && appSettings.company_email ? appSettings.company_email : '';
-
-        // Get current year for copyright
-        const currentYear = new Date().getFullYear();
 
         // Get invoice time
         const invoiceTime = document.getElementById('display-invoice-time').textContent;
@@ -1121,7 +1090,6 @@ function printInvoice() {
                 .header h2 {
                     font-size: 12pt;
                     margin: 0 0 5px 0;
-                    font-weight: bold;
                 }
                 .header p {
                     margin: 2px 0;
@@ -1145,10 +1113,7 @@ function printInvoice() {
                     text-align: center;
                     font-size: 7pt;
                     color: #888;
-                    border-top: 1px dotted #ccc;
-                    padding-top: 5px;
                 }
-                .grand-total { font-weight: bold; font-size: 10pt; }
                 .qty { text-align: center; }
                 .price, .total { text-align: right; }
             </style>
@@ -1158,14 +1123,12 @@ function printInvoice() {
                 <h2>${companyName}</h2>
                 ${companyAddress ? `<p>${companyAddress}</p>` : ''}
                 ${companyPhone ? `<p>Phone: ${companyPhone}</p>` : ''}
-                ${companyEmail ? `<p>Email: ${companyEmail}</p>` : ''}
                 <p>--------------------------------</p>
             </div>
 
             <div class="details">
                 <p><strong>Receipt:</strong> ${invoiceNumber}</p>
-                <p><strong>Date:</strong> ${invoiceDate}</p>
-                <p><strong>Time:</strong> ${invoiceTime}</p>
+                <p><strong>Date:</strong> ${invoiceDate} ${invoiceTime}</p>
                 <p><strong>Customer:</strong> ${customerName || 'N/A'}</p>
             </div>
 
@@ -1200,12 +1163,12 @@ function printInvoice() {
 
             <div class="totals">
                 <p>Subtotal: ${currencySymbol}${subtotalDisplay}</p>
-                ${taxRate > 0 ? `<p>Tax (${taxRateDisplay}%): ${currencySymbol}${taxAmountDisplay}</p>` : ''}
-                <p class="grand-total">Grand Total: ${currencySymbol}${grandTotalDisplay}</p>
+                <p>Tax (${taxRateDisplay}%): ${currencySymbol}${taxAmountDisplay}</p>
+                <p><strong>Grand Total: ${currencySymbol}${grandTotalDisplay}</strong></p>
             </div>
 
             <div class="watermark">
-                Invoice App © ${currentYear} | All Rights Reserved | Powered by Bat Inc
+                Invoice App © 2023 | All Rights Reserved | Powered by Bat Inc
             </div>
         </body>
         </html>
@@ -1913,43 +1876,17 @@ function printModalInvoice() {
 
 // Delete an invoice
 function deleteInvoice(id, callback) {
-    // Show confirmation dialog
-    if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
-        return;
-    }
-
-    // Show loading indicator
-    const deleteBtn = document.querySelector(`button[data-delete-id="${id}"]`);
-    let originalText = '';
-    if (deleteBtn) {
-        originalText = deleteBtn.innerHTML;
-        deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
-        deleteBtn.disabled = true;
-    }
-
     fetch(`/api/invoices/${id}`, {
         method: 'DELETE',
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Server returned an error');
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (callback) callback();
-        refreshAllHistoryTabs(); // Refresh all history tabs
-    })
-    .catch(error => {
-        console.error('Error deleting invoice:', error);
-        alert('Error deleting invoice. Please try again.');
-
-        // Reset the button if it exists
-        if (deleteBtn) {
-            deleteBtn.innerHTML = originalText;
-            deleteBtn.disabled = false;
-        }
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (callback) callback();
+        })
+        .catch(error => {
+            console.error('Error deleting invoice:', error);
+            alert('Error deleting invoice. Please try again.');
+        });
 }
 
 // Refresh all history tabs
@@ -1999,72 +1936,6 @@ function renderMostOrderedProducts(result) {
 
     // Call the new function
     renderMostOrderedProductsWithPagination(result);
-}
-
-// Show loading overlay on an element
-function showLoading(element, message = 'Loading...') {
-    if (!element) return;
-
-    // Remove any existing overlay first
-    hideLoading();
-
-    // Create loading overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay';
-    overlay.id = 'loading-overlay';
-
-    // Create spinner and message
-    overlay.innerHTML = `
-        <div class="text-center text-white">
-            <div class="spinner-border loading-spinner" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <div class="mt-2">${message}</div>
-        </div>
-    `;
-
-    // Add overlay to element
-    element.appendChild(overlay);
-    return overlay;
-}
-
-// Hide loading overlay
-function hideLoading() {
-    const overlay = document.getElementById('loading-overlay');
-    if (overlay) {
-        overlay.remove();
-    }
-}
-
-// Show feedback message to the user
-function showFeedback(elementId, message, type = 'info', autoHide = true) {
-    const feedbackElement = document.getElementById(elementId);
-    if (!feedbackElement) return;
-
-    // Clear any existing content
-    feedbackElement.innerHTML = '';
-
-    // Create alert element
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.role = 'alert';
-
-    // Add message
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-
-    // Add to the DOM
-    feedbackElement.appendChild(alertDiv);
-
-    // Auto-hide after 5 seconds if requested
-    if (autoHide) {
-        setTimeout(() => {
-            const alert = bootstrap.Alert.getOrCreateInstance(alertDiv);
-            if (alert) alert.close();
-        }, 5000);
-    }
 }
 
 // Helper function to format dates

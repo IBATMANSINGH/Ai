@@ -85,18 +85,24 @@ exports.createInvoice = (req, res) => {
             return res.status(500).json({ error: settingErr.message });
         }
 
+        // Get default tax rate from settings
+        const defaultTaxRate = settings && settings.tax_enabled ? settings.tax_rate : 0;
+        console.log(`Default tax rate from settings: ${defaultTaxRate}`);
+
         // Prepare invoice object
         const invoice = {
             customer_name: req.body.customer_name || 'N/A',
             invoice_date: req.body.invoice_date,
             invoice_number: req.body.invoice_number,
-            tax_rate: parseFloat(req.body.tax_rate) || (settings ? settings.tax_rate : 18.0),
+            tax_rate: parseFloat(req.body.tax_rate) || defaultTaxRate,
             subtotal: parseFloat(req.body.subtotal) || 0,
             tax_amount: parseFloat(req.body.tax_amount) || 0,
             grand_total: parseFloat(req.body.grand_total) || 0,
             currency_symbol: settings ? settings.currency_symbol : '₹',
             items: req.body.items || []
         };
+
+        console.log(`Using tax rate: ${invoice.tax_rate}%`);
 
         console.log('Prepared invoice object:', invoice);
 

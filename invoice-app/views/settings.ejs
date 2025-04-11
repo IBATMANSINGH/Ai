@@ -163,31 +163,13 @@
                         <div class="tab-pane fade" id="product" role="tabpanel" aria-labelledby="product-tab">
                             <h3 class="h5 mb-3">Product Settings</h3>
 
-                            <form action="/settings" method="POST" class="mb-3">
-                                <input type="hidden" name="id" value="<%= settings.id %>">
-                                <input type="hidden" name="currency_code" value="<%= settings.currency_code %>">
-                                <input type="hidden" name="currency_symbol" value="<%= settings.currency_symbol %>">
-                                <input type="hidden" name="tax_rate" value="<%= settings.tax_rate %>">
-                                <input type="hidden" name="tax_name" value="<%= settings.tax_name %>">
-                                <input type="hidden" name="tax_enabled" value="<%= settings.tax_enabled ? 'on' : '' %>">
-                                <input type="hidden" name="company_name" value="<%= settings.company_name %>">
-                                <input type="hidden" name="company_address" value="<%= settings.company_address %>">
-                                <input type="hidden" name="company_phone" value="<%= settings.company_phone %>">
-                                <input type="hidden" name="company_email" value="<%= settings.company_email %>">
-                                <input type="hidden" name="invoice_prefix" value="<%= settings.invoice_prefix %>">
-                                <input type="hidden" name="invoice_starting_number" value="<%= settings.invoice_starting_number %>">
-                                <input type="hidden" name="date_format" value="<%= settings.date_format %>">
-
+                            <div class="mb-3">
                                 <div class="form-check">
                                     <input type="checkbox" class="form-check-input" id="product_images_enabled" name="product_images_enabled" <%= settings.product_images_enabled ? 'checked' : '' %>>
                                     <label class="form-check-label" for="product_images_enabled">Enable Product Images</label>
                                     <div class="form-text">When enabled, you can upload and display images for products.</div>
                                 </div>
-
-                                <div class="mt-3">
-                                    <button type="submit" class="btn btn-primary">Save Product Image Settings</button>
-                                </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
 
@@ -225,8 +207,20 @@
         settingsForm.addEventListener('submit', function(event) {
             event.preventDefault();
 
-            // Log form data for debugging
+            // Get the tax_enabled value
+            const taxEnabled = document.getElementById('tax_enabled').checked ? 'on' : '';
+
+            // Get the product_images_enabled value
+            const productImagesEnabled = document.getElementById('product_images_enabled').checked ? 'on' : '';
+
+            // Create FormData from the form
             const formData = new FormData(settingsForm);
+
+            // Ensure checkbox values are properly set
+            formData.set('tax_enabled', taxEnabled);
+            formData.set('product_images_enabled', productImagesEnabled);
+
+            // Log form data for debugging
             console.log('Form data:');
             for (let [key, value] of formData.entries()) {
                 console.log(key + ': ' + value);
@@ -245,6 +239,7 @@
             })
             .then(response => {
                 if (response.ok) {
+                    // Reload the page with success parameter
                     window.location.href = '/settings?success=true';
                 } else {
                     return response.text().then(text => {

@@ -1,5 +1,140 @@
 /* Custom styles for the invoice app */
 
+/* Dark Mode Styles */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --info-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --body-bg: #fff;
+    --body-color: #212529;
+    --card-bg: #fff;
+    --card-border: rgba(0, 0, 0, 0.125);
+    --input-bg: #fff;
+    --input-color: #212529;
+    --input-border: #ced4da;
+    --table-border: #dee2e6;
+    --table-striped-bg: rgba(0, 0, 0, 0.05);
+    --table-hover-bg: rgba(0, 0, 0, 0.075);
+    --modal-bg: #fff;
+    --modal-border: rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --info-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #212529;
+    --dark-color: #f8f9fa;
+    --body-bg: #121212;
+    --body-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --card-border: rgba(255, 255, 255, 0.125);
+    --input-bg: #2c2c2c;
+    --input-color: #e0e0e0;
+    --input-border: #444;
+    --table-border: #444;
+    --table-striped-bg: rgba(255, 255, 255, 0.05);
+    --table-hover-bg: rgba(255, 255, 255, 0.075);
+    --modal-bg: #1e1e1e;
+    --modal-border: rgba(255, 255, 255, 0.2);
+}
+
+body {
+    background-color: var(--body-bg);
+    color: var(--body-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+}
+
+.table {
+    color: var(--body-color);
+    border-color: var(--table-border);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: var(--table-striped-bg);
+}
+
+.table-hover > tbody > tr:hover {
+    background-color: var(--table-hover-bg);
+}
+
+.form-control, .form-select {
+    background-color: var(--input-bg);
+    color: var(--input-color);
+    border-color: var(--input-border);
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--input-bg);
+    color: var(--input-color);
+}
+
+.modal-content {
+    background-color: var(--modal-bg);
+    border-color: var(--modal-border);
+    color: var(--body-color);
+}
+
+.nav-tabs .nav-link {
+    color: var(--body-color);
+}
+
+.nav-tabs .nav-link.active {
+    background-color: var(--card-bg);
+    color: var(--body-color);
+    border-bottom-color: var(--card-bg);
+}
+
+.pagination .page-link {
+    background-color: var(--card-bg);
+    border-color: var(--input-border);
+    color: var(--body-color);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+
+/* Dark mode toggle switch */
+.dark-mode-toggle {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.dark-mode-toggle .form-check-input {
+    height: 1.5em;
+    width: 3em;
+    cursor: pointer;
+}
+
+.dark-mode-toggle .form-check-label {
+    margin-left: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.dark-mode-toggle .form-check-label i {
+    font-size: 1.2em;
+    margin-right: 5px;
+}
+
 /* Print Specific Styles */
 @media print {
     body {
@@ -15,14 +150,14 @@
     #clear-invoice,
     #save-invoice,
     .action-buttons,
-    #tax-rate-input {
+    #tax-rate-input,
+    .row.mb-4 .text-center .btn-primary {
         display: none !important;
     }
 
-    /* Show company info when printing */
+    /* Hide company info when printing */
     #company-info {
-        display: block !important;
-        margin-bottom: 20px;
+        display: none !important;
     }
 
     .card {
@@ -40,6 +175,80 @@
 
     #invoice-display {
         width: 100%;
+    }
+
+    /* Watermark style */
+    .invoice-watermark {
+        position: fixed;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 8pt;
+        color: #888;
+        opacity: 0.7;
+    }
+
+    /* Small receipt printer styles */
+    @page {
+        size: 80mm 297mm; /* Standard thermal receipt width */
+        margin: 5mm;
+    }
+
+    body.receipt-mode {
+        width: 70mm;
+        margin: 0 auto;
+        font-size: 9pt;
+        line-height: 1.2;
+    }
+
+    body.receipt-mode table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 8pt;
+    }
+
+    body.receipt-mode th,
+    body.receipt-mode td {
+        padding: 2px;
+        text-align: left;
+        border-bottom: 1px dotted #ccc;
+    }
+
+    body.receipt-mode .invoice-header {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    body.receipt-mode .invoice-header h2 {
+        font-size: 12pt;
+        margin: 0 0 5px 0;
+    }
+
+    body.receipt-mode .invoice-header p {
+        margin: 2px 0;
+        font-size: 8pt;
+    }
+
+    body.receipt-mode .invoice-details {
+        margin-bottom: 10px;
+        font-size: 8pt;
+    }
+
+    body.receipt-mode .totals {
+        margin-top: 10px;
+        text-align: right;
+        border-top: 1px solid #000;
+        padding-top: 5px;
+    }
+
+    body.receipt-mode .totals p {
+        margin: 2px 0;
+    }
+
+    body.receipt-mode .invoice-watermark {
+        font-size: 7pt;
+        margin-top: 10px;
     }
 
     #invoice-items-table th,

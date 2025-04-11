@@ -124,13 +124,16 @@
 
                     <div id="invoice-details" class="mb-3">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <p><strong>Customer:</strong> <span id="display-customer-name">N/A</span></p>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <p><strong>Date:</strong> <span id="display-invoice-date"></span></p>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <p><strong>Time:</strong> <span id="display-invoice-time"></span></p>
+                            </div>
+                            <div class="col-md-3">
                                 <p><strong>Invoice #:</strong> <span id="display-invoice-number"></span></p>
                             </div>
                         </div>
@@ -165,10 +168,41 @@
                         </div>
                     </div>
 
-                    <div class="mt-4">
-                        <button id="save-invoice" class="btn btn-success">Save Invoice</button>
+
+
+                    <!-- Watermark for printing -->
+                    <div class="invoice-watermark d-none">
+                        Invoice App © 2023 | All Rights Reserved | Powered by Bat Inc
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View History Link -->
+<div class="row mb-4">
+    <div class="col-md-12 text-center">
+        <a href="/history" class="btn btn-primary">
+            <i class="bi bi-clock-history"></i> View Invoice History
+        </a>
+    </div>
+</div>
+
+<!-- Invoice Detail Modal -->
+<div class="modal fade" id="invoiceDetailModal" tabindex="-1" aria-labelledby="invoiceDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="invoiceDetailModalLabel">Invoice Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="invoice-detail-content">
+                <!-- Invoice details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="print-modal-invoice">Print</button>
             </div>
         </div>
     </div>

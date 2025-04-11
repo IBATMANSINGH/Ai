@@ -224,10 +224,7 @@ class Invoice {
 
     // Get the highest invoice number
     static getHighestInvoiceNumber(prefix, callback) {
-        console.log(`Getting highest invoice number with prefix: ${prefix}`);
-
         // SQL to extract the numeric part of invoice_number and find the highest
-        // Using a more robust approach to handle different formats
         const sql = `
             SELECT invoice_number
             FROM invoices
@@ -238,49 +235,32 @@ class Invoice {
 
         db.get(sql, [`${prefix}%`], (err, row) => {
             if (err) {
-                console.error('Error getting highest invoice number:', err);
                 return callback(err, null);
             }
 
             if (!row) {
-                console.log('No invoices found with this prefix');
                 // No invoices found with this prefix
                 return callback(null, null);
             }
 
-            console.log(`Found highest invoice number: ${row.invoice_number}`);
+            // Extract the numeric part from the invoice number
+            const numericPart = row.invoice_number.replace(prefix, '');
 
-            // Extract the numeric part from the invoice number using regex
-            // This will match any digits after the prefix
-            const regex = new RegExp(`^${prefix.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}(\\d+)$`);
-            const match = row.invoice_number.match(regex);
-
-            let highestNumber;
-            if (match && match[1]) {
-                highestNumber = parseInt(match[1], 10);
-                console.log(`Extracted numeric part: ${match[1]}, parsed as: ${highestNumber}`);
-            } else {
-                // Fallback to simple replace if regex doesn't match
-                const numericPart = row.invoice_number.replace(prefix, '');
-                highestNumber = parseInt(numericPart, 10);
-                console.log(`Fallback extraction: ${numericPart}, parsed as: ${highestNumber}`);
-            }
-
+            // Convert to number and return
+            const highestNumber = parseInt(numericPart, 10);
             return callback(null, isNaN(highestNumber) ? null : highestNumber);
         });
     }
 
     // Get invoices grouped by year
     static getByYear(callback) {
-        // Improved date format handling
+        // Try to handle different date formats
         const sql = `
             SELECT
                 CASE
                     WHEN invoice_date LIKE '____-__-__' THEN substr(invoice_date, 1, 4)
                     WHEN invoice_date LIKE '__/__/____' THEN substr(invoice_date, 7, 4)
                     WHEN invoice_date LIKE '__-__-____' THEN substr(invoice_date, 7, 4)
-                    WHEN invoice_date LIKE '____/__/__' THEN substr(invoice_date, 1, 4)
-                    WHEN invoice_date LIKE '____-__-__' THEN substr(invoice_date, 1, 4)
                     ELSE strftime('%Y', invoice_date)
                 END as year,
                 COUNT(*) as count,
@@ -304,15 +284,13 @@ class Invoice {
 
     // Get invoices grouped by month
     static getByMonth(callback) {
-        // Improved date format handling
+        // Try to handle different date formats
         const sql = `
             SELECT
                 CASE
                     WHEN invoice_date LIKE '____-__-__' THEN substr(invoice_date, 1, 7)
                     WHEN invoice_date LIKE '__/__/____' THEN substr(invoice_date, 7, 4) || '-' || substr(invoice_date, 4, 2)
                     WHEN invoice_date LIKE '__-__-____' THEN substr(invoice_date, 7, 4) || '-' || substr(invoice_date, 4, 2)
-                    WHEN invoice_date LIKE '____/__/__' THEN substr(invoice_date, 1, 4) || '-' || substr(invoice_date, 6, 2)
-                    WHEN invoice_date LIKE '____-__-__' THEN substr(invoice_date, 1, 7)
                     ELSE strftime('%Y-%m', invoice_date)
                 END as month,
                 COUNT(*) as count,
@@ -336,14 +314,14 @@ class Invoice {
 
     // Get invoices grouped by week
     static getByWeek(callback) {
-        // Improved date format handling for weekly grouping
+        // For simplicity, we'll just group by month and day for now
+        // since SQLite's strftime with %W can be problematic with different date formats
         const sql = `
             SELECT
                 CASE
                     WHEN invoice_date LIKE '____-__-__' THEN substr(invoice_date, 1, 7) || '-W' || (cast(substr(invoice_date, 9, 2) as integer) / 7 + 1)
                     WHEN invoice_date LIKE '__/__/____' THEN substr(invoice_date, 7, 4) || '-' || substr(invoice_date, 4, 2) || '-W' || (cast(substr(invoice_date, 1, 2) as integer) / 7 + 1)
                     WHEN invoice_date LIKE '__-__-____' THEN substr(invoice_date, 7, 4) || '-' || substr(invoice_date, 4, 2) || '-W' || (cast(substr(invoice_date, 1, 2) as integer) / 7 + 1)
-                    WHEN invoice_date LIKE '____/__/__' THEN substr(invoice_date, 1, 4) || '-' || substr(invoice_date, 6, 2) || '-W' || (cast(substr(invoice_date, 9, 2) as integer) / 7 + 1)
                     ELSE strftime('%Y-%m-W%W', invoice_date)
                 END as week,
                 MIN(invoice_date) as week_start,

@@ -1,0 +1,249 @@
+<%- include('partials/header', { title: 'Invoice History' }) %>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="h3 mb-3">Invoice History</h1>
+    </div>
+</div>
+
+<!-- Invoice History Section -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card" id="invoice-history">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">Invoice History</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-light" id="export-csv"><i class="bi bi-file-earmark-text"></i> Export CSV</button>
+                    <button class="btn btn-sm btn-light" id="export-excel"><i class="bi bi-file-earmark-excel"></i> Export Excel</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Search and Filter Controls -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" id="invoice-search" class="form-control" placeholder="Search invoices...">
+                            <button class="btn btn-outline-secondary" type="button" id="search-button"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filterOptions">
+                            <i class="bi bi-funnel"></i> Filters
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Collapsible Filter Options -->
+                <div class="collapse mb-3" id="filterOptions">
+                    <div class="card card-body bg-light">
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+                                <label for="filter-customer" class="form-label">Customer</label>
+                                <input type="text" id="filter-customer" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="filter-product" class="form-label">Product</label>
+                                <input type="text" id="filter-product" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="filter-start-date" class="form-label">Start Date</label>
+                                <input type="date" id="filter-start-date" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="filter-end-date" class="form-label">End Date</label>
+                                <input type="date" id="filter-end-date" class="form-control form-control-sm">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12 text-end">
+                                <button id="apply-filters" class="btn btn-sm btn-primary">Apply Filters</button>
+                                <button id="clear-filters" class="btn btn-sm btn-secondary">Clear Filters</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <ul class="nav nav-tabs" id="historyTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="yearly-tab" data-bs-toggle="tab" data-bs-target="#yearly" type="button" role="tab" aria-controls="yearly" aria-selected="true">Yearly</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab" aria-controls="monthly" aria-selected="false">Monthly</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="weekly-tab" data-bs-toggle="tab" data-bs-target="#weekly" type="button" role="tab" aria-controls="weekly" aria-selected="false">Weekly</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="daily-tab" data-bs-toggle="tab" data-bs-target="#daily" type="button" role="tab" aria-controls="daily" aria-selected="false">Daily</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-invoices" type="button" role="tab" aria-controls="all-invoices" aria-selected="false">All Invoices</button>
+                    </li>
+                </ul>
+                <div class="tab-content mt-3" id="historyTabContent">
+                    <div class="tab-pane fade show active" id="yearly" role="tabpanel" aria-labelledby="yearly-tab">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Invoices</th>
+                                        <th>Total Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="yearly-history">
+                                    <!-- Yearly data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="monthly" role="tabpanel" aria-labelledby="monthly-tab">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Invoices</th>
+                                        <th>Total Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthly-history">
+                                    <!-- Monthly data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="weekly" role="tabpanel" aria-labelledby="weekly-tab">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Week</th>
+                                        <th>Invoices</th>
+                                        <th>Total Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="weekly-history">
+                                    <!-- Weekly data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="daily" role="tabpanel" aria-labelledby="daily-tab">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Invoices</th>
+                                        <th>Total Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="daily-history">
+                                    <!-- Daily data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="all-invoices" role="tabpanel" aria-labelledby="all-tab">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Total</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="all-invoices-list">
+                                    <!-- All invoices will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination for All Invoices -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div>
+                                <span id="invoice-pagination-info">Showing 1-10 of 0 invoices</span>
+                            </div>
+                            <nav aria-label="Invoice pagination">
+                                <ul class="pagination pagination-sm" id="invoice-pagination">
+                                    <!-- Pagination will be generated here -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Most Ordered Products Section -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card" id="most-ordered-products">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">Most Ordered Products</h2>
+                <div class="input-group input-group-sm" style="width: 200px;">
+                    <input type="text" id="product-search" class="form-control" placeholder="Search products...">
+                    <button class="btn btn-light" type="button" id="product-search-button"><i class="bi bi-search"></i></button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Invoices</th>
+                                <th>Last Ordered</th>
+                            </tr>
+                        </thead>
+                        <tbody id="most-ordered-list">
+                            <!-- Most ordered products will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination for Products -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <span id="product-pagination-info">Showing 1-10 of 0 products</span>
+                    </div>
+                    <nav aria-label="Product pagination">
+                        <ul class="pagination pagination-sm" id="product-pagination">
+                            <!-- Pagination will be generated here -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Detail Modal -->
+<div class="modal fade" id="invoiceDetailModal" tabindex="-1" aria-labelledby="invoiceDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="invoiceDetailModalLabel">Invoice Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="invoice-detail-content">
+                <!-- Invoice details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="print-modal-invoice">Print</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>
